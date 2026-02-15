@@ -1,11 +1,19 @@
 // State Management
 let state = {
     ideas: [],
-    apiKey: localStorage.getItem('gemini_api_key') || '',
+    sessionId: localStorage.getItem('session_id') || generateSessionId(),
     conversation: [],
     itinerary: null,
-    analyzing: false
+    analyzing: false,
+    usage: { remaining: null, limit: null }
 };
+
+// Generate unique session ID
+function generateSessionId() {
+    const id = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('session_id', id);
+    return id;
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -201,12 +209,6 @@ function setupDragAndDrop() {
 
 // Analyze Ideas with AI
 async function analyzeIdeas() {
-    if (!state.apiKey) {
-        alert('請先在設定中填入 Google Gemini API Key');
-        openSettings();
-        return;
-    }
-    
     state.analyzing = true;
     updateAnalyzeButton();
     
@@ -275,7 +277,7 @@ ${hasImages ? '（使用者還上傳了圖片）' : ''}
 只回傳 JSON，不要其他內容。`;
 }
 
-// Call Google Gemini API
+// Call our secure backend API (no API key needed!)
 async function callGemini(prompt, includeImages = false) {
     // Build conversation history
     let conversationText = '';
@@ -294,45 +296,40 @@ ${conversationText ? '對話歷史：\n' + conversationText + '\n\n' : ''}
 用戶新訊息：
 ${prompt}`;
 
-    // Prepare request body
-    const requestBody = {
-        contents: [{
-            parts: [{
-                text: fullPrompt
-            }]
-        }]
-    };
+    // 呼叫我們的後端 API（自動處理，不需要 API Key！）
+    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3000/api/generate'  // 本地測試
+        : '/api/generate';  // 生產環境
     
-    // Add images if needed
-    if (includeImages) {
-        const imageIdeas = state.ideas.filter(i => i.type === 'image');
-        if (imageIdeas.length > 0) {
-            // Add first image for vision analysis
-            const imageData = imageIdeas[0].content.split(',')[1]; // Remove data:image/...;base64,
-            requestBody.contents[0].parts.push({
-                inline_data: {
-                    mime_type: 'image/jpeg',
-                    data: imageData
-                }
-            });
-        }
-    }
-    
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${state.apiKey}`, {
+    const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Session-ID': state.sessionId
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+            prompt: fullPrompt,
+            includeHistory: state.conversation.length > 0
+        })
     });
     
+    const data = await response.json();
+    
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || '無法連接到 Gemini API');
+        // 處理用量限制
+        if (response.status === 429) {
+            throw new Error(`${data.error}\n${data.message}\n\n重置時間：${new Date(data.resetTime).toLocaleString('zh-TW')}`);
+        }
+        throw new Error(data.error || data.message || '無法連接到 AI 服務');
     }
     
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
+    // 更新用量資訊
+    if (data.usage) {
+        state.usage = data.usage;
+        updateUsageDisplay();
+    }
+    
+    return data.response;
 }
 
 // Show Analysis Results
@@ -423,11 +420,6 @@ function addAIMessage(content) {
 
 // Handle User Message
 async function handleUserMessage(message) {
-    if (!state.apiKey) {
-        addAIMessage('請先在設定中填入 Google Gemini API Key');
-        return;
-    }
-    
     try {
         // Check if user wants to generate itinerary
         if (message.includes('生成') || message.includes('規劃') || message.includes('確認') || message.includes('好')) {
@@ -730,11 +722,26 @@ function generateItineraryHTML(itinerary) {
 </html>`;
 }
 
-// Settings
+// Update usage display
+function updateUsageDisplay() {
+    const usageEl = document.getElementById('usage-info');
+    if (usageEl && state.usage.remaining !== null) {
+        const percentage = (state.usage.remaining / state.usage.limit) * 100;
+        let color = '#10b981';
+        if (percentage < 20) color = '#ef4444';
+        else if (percentage < 50) color = '#f59e0b';
+        
+        usageEl.innerHTML = `
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                今日剩餘額度：<span style="color: ${color}; font-weight: 600;">${state.usage.remaining}/${state.usage.limit}</span>
+            </div>
+        `;
+    }
+}
+
+// Settings (no longer needed for API key, but keep for future settings)
 function openSettings() {
     const modal = document.getElementById('settings-modal');
-    const input = document.getElementById('api-key-input');
-    input.value = state.apiKey;
     modal.classList.add('show');
 }
 
@@ -743,15 +750,8 @@ function closeSettings() {
 }
 
 function saveSettings() {
-    const input = document.getElementById('api-key-input');
-    state.apiKey = input.value.trim();
-    localStorage.setItem('gemini_api_key', state.apiKey);
-    saveState();
+    // Future: add other settings here
     closeSettings();
-    
-    if (state.apiKey) {
-        addAIMessage('✅ Gemini API Key 已儲存！現在可以開始使用 AI 功能了。');
-    }
 }
 
 // State Management

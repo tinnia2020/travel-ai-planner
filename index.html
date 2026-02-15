@@ -641,7 +641,10 @@
                 <span>✈️</span>
                 <span>AI 旅遊規劃助手</span>
             </div>
-            <button class="settings-btn" onclick="openSettings()">⚙️ 設定</button>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div id="usage-info"></div>
+                <button class="settings-btn" onclick="openSettings()" style="display: none;">⚙️ 設定</button>
+            </div>
         </div>
     </div>
 
@@ -726,7 +729,9 @@
                     <div class="message-avatar">🤖</div>
                     <div class="message-content">
                         嗨！我是你的 AI 旅遊規劃助手 👋<br><br>
-                        在左邊的「發想區」加入你的旅行想法、圖片或連結，我會幫你分析並規劃出完美的行程！
+                        ✨ <strong>無需設定，直接開始！</strong><br><br>
+                        在左邊的「發想區」加入你的旅行想法、圖片或連結，我會幫你分析並規劃出完美的行程！<br><br>
+                        💡 每日免費額度：50 次請求
                     </div>
                 </div>
             </div>
@@ -773,24 +778,31 @@
     <!-- Settings Modal -->
     <div class="modal" id="settings-modal">
         <div class="modal-content">
-            <div class="modal-header">⚙️ 設定</div>
+            <div class="modal-header">ℹ️ 關於</div>
             
-            <div class="form-group">
-                <label class="form-label">Google Gemini API Key</label>
-                <input 
-                    type="password" 
-                    class="form-input" 
-                    id="api-key-input" 
-                    placeholder="AIza..."
-                >
-                <small style="color: var(--text-secondary); font-size: 0.8rem;">
-                    需要 Google Gemini API Key 才能使用 AI 功能。<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary);">免費取得 API Key</a>
-                </small>
+            <div style="padding: 20px 0;">
+                <h3 style="margin-bottom: 12px; font-size: 1.1rem;">✈️ AI 旅遊規劃助手</h3>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
+                    由 Google Gemini AI 驅動，幫你規劃完美旅行！
+                </p>
+                
+                <div style="background: var(--bg); padding: 16px; border-radius: 12px; margin: 16px 0;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">📊 使用額度</div>
+                    <div id="settings-usage-info" style="color: var(--text-secondary); font-size: 0.9rem;">
+                        每日限制：50 次請求<br>
+                        自動於每天午夜重置
+                    </div>
+                </div>
+                
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 16px;">
+                    💡 <strong>無需設定</strong>：直接使用，不用申請 API Key！<br>
+                    🔒 <strong>隱私保護</strong>：所有資料僅用於生成行程<br>
+                    ⚡ <strong>完全免費</strong>：由開發者提供 AI 額度
+                </div>
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeSettings()">取消</button>
-                <button class="btn" onclick="saveSettings()">儲存</button>
+                <button class="btn" onclick="closeSettings()">關閉</button>
             </div>
         </div>
     </div>

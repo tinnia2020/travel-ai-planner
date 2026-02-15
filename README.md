@@ -22,9 +22,9 @@
 ## 🚀 使用方式
 
 ### 開啟 App
-1. 用瀏覽器開啟 `index.html`
-2. 點擊右上角「⚙️ 設定」
-3. 填入你的 Google Gemini API Key（[如何取得](#取得-gemini-api-key)）
+1. 前往線上網址（部署後）
+2. **無需設定！** 直接開始使用
+3. 每日免費額度：50 次請求
 
 ### 規劃行程
 1. **加入靈感**：在左側「發想區」輸入想法、上傳圖片或連結
@@ -33,17 +33,13 @@
 4. **生成行程**：AI 會自動生成完整行程
 5. **匯出分享**：點擊「📥 匯出網頁」下載
 
-## 🔑 取得 Gemini API Key
+## 🎁 **用戶無需設定 API Key！**
 
-1. 前往 [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. 用 Google 帳號登入
-3. 點擊「Create API Key」
-4. 複製 API Key（格式：`AIza...`）
-5. 在 App 設定中貼上
-
-**注意**：
-- API Key 會儲存在你的瀏覽器本地，不會上傳到任何伺服器
-- Google 提供每月免費額度，一般使用綽綽有餘
+所有 AI 功能由後端安全處理，用戶：
+- ✅ 無需申請 API Key
+- ✅ 無需設定任何東西
+- ✅ 打開網頁直接使用
+- ✅ 完全免費（每日 50 次額度）
 
 ## 💰 費用說明
 
@@ -56,33 +52,55 @@
 
 ## 🛠️ 技術架構
 
-- **前端**：純 HTML + CSS + JavaScript（無框架）
-- **AI**：Google Gemini 1.5 Flash API
-- **視覺分析**：Gemini Vision（支援圖片分析）
+### 前端
+- **框架**：純 HTML + CSS + JavaScript（無框架）
 - **儲存**：瀏覽器 LocalStorage（本地儲存）
-- **部署**：可直接部署到 GitHub Pages
+- **部署**：Vercel（含前端靜態資源）
 
-## 📦 部署到 GitHub Pages
+### 後端 API
+- **平台**：Vercel Serverless Functions
+- **語言**：Node.js
+- **AI**：Google Gemini Pro API
+- **安全**：
+  - API Key 加密存放在環境變數
+  - 用量限制（每 IP 每日 50 次）
+  - Session 追蹤
+  - CORS 保護
+
+### 視覺分析
+- Gemini Vision（支援圖片分析）
+- 未來可擴充影片分析
+
+## 📦 部署到 Vercel
+
+**詳細步驟請參考：[DEPLOY.md](./DEPLOY.md)**
+
+### 快速部署（CLI）
 
 ```bash
-# 1. 初始化 Git
+# 1. 安裝 Vercel CLI
+npm install -g vercel
+
+# 2. 登入 Vercel
+vercel login
+
+# 3. 部署
 cd travel-ai-planner
-git init
+vercel
 
-# 2. 加入檔案
-git add .
-git commit -m "Initial commit"
+# 4. 設定 API Key 環境變數
+vercel env add GEMINI_API_KEY production
+# 貼上你的 Gemini API Key
 
-# 3. 推送到 GitHub
-git remote add origin https://github.com/你的帳號/travel-ai-planner.git
-git branch -M main
-git push -u origin main
-
-# 4. 啟用 GitHub Pages
-# 到 Repository > Settings > Pages
-# Source 選擇 "main" branch
-# 幾分鐘後網站會上線！
+# 5. 正式部署
+vercel --prod
 ```
+
+### 部署後
+- 用戶可直接使用，無需設定
+- 自動 HTTPS
+- 全球 CDN 加速
+- 免費方案每月 100GB 流量
 
 ## 🎨 自訂樣式
 
@@ -100,9 +118,7 @@ git push -u origin main
 ## 🐛 常見問題
 
 ### Q: API Key 安全嗎？
-A: 目前版本是前端直接呼叫 API，Key 會暴露。建議：
-- 只在本地使用
-- 或改用後端代理（需要自行開發）
+A: 完全安全！API Key 存放在 Vercel 環境變數（加密），不會暴露給用戶或出現在前端程式碼中。
 
 ### Q: 可以離線使用嗎？
 A: 不行，需要網路連接 OpenAI API。但已分析的內容會儲存在本地。
@@ -127,11 +143,17 @@ A: 已支援！Gemini Vision 可以分析圖片內容，辨識地點、食物類
 
 ## 📝 更新日誌
 
+### v2.0.0 (2026-02-15) 🎉 **重大更新**
+- ✅ **後端 API 代理系統**（用戶無需 API Key！）
+- ✅ **用量限制控管**（每 IP 每日 50 次）
+- ✅ **API Key 安全加密**（存放在後端環境變數）
+- ✅ **用量顯示**（即時顯示剩餘額度）
+- ✅ **Session 追蹤**（防止濫用）
+- ✅ **部署到 Vercel**（免費 + 全球 CDN）
+
 ### v1.1.0 (2026-02-15)
-- ✅ **改用 Google Gemini API**（完全免費！）
+- ✅ 改用 Google Gemini API
 - ✅ 支援 Gemini Vision 圖片分析
-- ✅ 更快的回應速度
-- ✅ 更大的免費額度
 
 ### v1.0.0 (2026-02-15)
 - ✅ 基礎 MVP 完成
